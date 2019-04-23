@@ -50,7 +50,10 @@ class _MyHomePageState extends State<MyHomePage> {
         top: 100.0,
         right: 100.0,
         bottom: 200.0,
-        child: Container(color: Colors.cyan,),
+        child: Padding(
+          padding: const EdgeInsets.all(1.0),
+          child: _thumbnailWidget()
+        ),
         ),
         ],
         ),
@@ -65,10 +68,17 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     } else {
-      return new AspectRatio(
-        aspectRatio: controller.value.aspectRatio,
-        child: new CameraPreview(controller),
+      return GestureDetector(
+        onTap: controller != null &&
+            controller.value.isInitialized
+            ? onTakePictureButtonPressed
+            : null,
+        child: new AspectRatio(
+          aspectRatio: controller.value.aspectRatio,
+          child: new CameraPreview(controller),
+        ),
       );
+
     }
   }
   void onNewCameraSelected() async {
@@ -88,5 +98,50 @@ class _MyHomePageState extends State<MyHomePage> {
     if (mounted) {
       setState(() {});
     }
+  }
+  Widget _thumbnailWidget() {
+    return  new Container(
+      color: Colors.black,
+        alignment: Alignment.centerRight,
+        child: imagePath == null
+            ? null
+            : new SizedBox(
+          child: new Image.file(new File(imagePath)),
+        ),
+    );
+  }
+
+  // カメラアイコンが押された時に呼ばれるコールバック関数
+  void onTakePictureButtonPressed() {
+    takePicture().then((String filePath) {
+      if (mounted) {
+        setState(() {
+          imagePath = filePath;
+        });
+      }
+    });
+  }
+  String timestamp() => new DateTime.now().millisecondsSinceEpoch.toString();
+  Future<String> takePicture() async {
+    if (!controller.value.isInitialized) {
+      return null;
+    }
+
+    final Directory extDir = await getApplicationDocumentsDirectory();
+    final String dirPath = '${extDir.path}/Pictures/flutter_test';
+    await new Directory(dirPath).create(recursive: true);
+    final String filePath = '$dirPath/${timestamp()}.jpg';
+
+    if (controller.value.isTakingPicture) {
+      return null;
+    }
+
+    try {
+      await controller.takePicture(filePath);
+    } on CameraException catch (e) {
+      return null;
+    }
+
+    return filePath;
   }
 }
