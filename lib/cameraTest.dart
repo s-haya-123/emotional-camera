@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-
+import 'AzureClient.dart';
 List<CameraDescription> cameras;
 
 // 実行されるmain関数
@@ -82,6 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
   void onNewCameraSelected() async {
+    AzureRepository().detectFaceInfo(true, false, "emotion", "recognition_01", false);
     if (controller != null) {
       await controller.dispose();
     }
