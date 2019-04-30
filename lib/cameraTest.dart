@@ -82,7 +82,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
   void onNewCameraSelected() async {
-    AzureRepository().detectFaceInfo(true, false, "emotion", "recognition_01", false);
     if (controller != null) {
       await controller.dispose();
     }
@@ -118,6 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (mounted) {
         setState(() {
           imagePath = filePath;
+          AzureRepository().detectFaceInfo(new File(imagePath),true, false, "emotion", "recognition_01", false);
         });
       }
     });

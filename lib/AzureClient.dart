@@ -1,10 +1,12 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
 
 class AzureRepository {
   final String url = "https://japaneast.api.cognitive.microsoft.com/face/v1.0/detect";
 
   detectFaceInfo(
+      File file,
       bool returnFaceId,
       bool returnFaceLandmarks,
       String returnFaceAttributes,
@@ -13,7 +15,7 @@ class AzureRepository {
       ) async {
     final headers = {
       "Ocp-Apim-Subscription-Key": "",
-      "Content-Type":"application/json",
+      "Content-Type":"application/octet-stream",
     };
     final parameters = "returnFaceId="+returnFaceId.toString()
         +"&returnFaceLandmarks="+returnFaceLandmarks.toString()
@@ -23,9 +25,7 @@ class AzureRepository {
     print(url+"?"+parameters);
     final response = await http.post(url+"?"+parameters,
         headers: headers,
-        body:jsonEncode({
-          "url":"https://d3bhdfps5qyllw.cloudfront.net/org/67/67bce941606fcba0f482059692984a64_1080x1337_h.jpg"
-        })
+        body:file.readAsBytesSync()
     );
     print(jsonDecode(response.body));
     print(FaceEntity.fromJson(jsonDecode(response.body)[0])._faceRectangleEntity.height);
@@ -40,7 +40,7 @@ class FaceEntity {
   FaceEntity.fromJson(Map<String,dynamic> json):
         faceId = json['faceId'],
         _faceRectangleEntity = FaceRectangleEntity.fromJson(json['faceRectangle']),
-        _faceAttributesEntity = FaceAttributesEntity.fromJson(json['faceAttributes'])
+        _faceAttributesEntity = FaceAttributesEntity.fromJson(json['faceAttributes']);
   Map<String,dynamic> toJson() =>
       {
         'faceId':faceId,
