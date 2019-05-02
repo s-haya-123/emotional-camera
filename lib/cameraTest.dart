@@ -33,6 +33,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   CameraController controller;
   String imagePath;
+  double left = 100.0;
+  double top = 100.0;
+  double right = 100.0;
+  double bottom = 100.0;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
@@ -46,10 +50,10 @@ class _MyHomePageState extends State<MyHomePage> {
             child: _cameraPreviewWidget(),
           ),
           Positioned(
-            left: 100.0,
-            top: 100.0,
-            right: 100.0,
-            bottom: 200.0,
+            left: left,
+            top: top,
+            right: right,
+            bottom: bottom,
             child: Padding(
               padding: const EdgeInsets.all(1.0),
               child: _thumbnailWidget()
@@ -101,12 +105,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   Widget _thumbnailWidget() {
     return  new Container(
+      color: Colors.black,
       alignment: Alignment.centerRight,
       child: imagePath == null
           ? new Text(
               "hello",
               style: TextStyle(
-                  color:Colors.black
+                  color:Colors.white
               )
             )
           : new SizedBox(
