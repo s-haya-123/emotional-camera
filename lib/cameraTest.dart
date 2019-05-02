@@ -43,20 +43,20 @@ class _MyHomePageState extends State<MyHomePage> {
       body: new Stack(
         children: <Widget>[
          Positioned.fill(
-          child: _cameraPreviewWidget(),
-        ),
-        Positioned(
-        left: 100.0,
-        top: 100.0,
-        right: 100.0,
-        bottom: 200.0,
-        child: Padding(
-          padding: const EdgeInsets.all(1.0),
-          child: _thumbnailWidget()
-        ),
-        ),
+            child: _cameraPreviewWidget(),
+          ),
+          Positioned(
+            left: 100.0,
+            top: 100.0,
+            right: 100.0,
+            bottom: 200.0,
+            child: Padding(
+              padding: const EdgeInsets.all(1.0),
+              child: _thumbnailWidget()
+            ),
+          ),
         ],
-        ),
+      ),
     );
   }
   Widget _cameraPreviewWidget() {
@@ -101,13 +101,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   Widget _thumbnailWidget() {
     return  new Container(
-      color: Colors.black,
-        alignment: Alignment.centerRight,
-        child: imagePath == null
-            ? null
-            : new SizedBox(
-          child: new Image.file(new File(imagePath)),
-        ),
+      alignment: Alignment.centerRight,
+      child: imagePath == null
+          ? new Text(
+              "hello",
+              style: TextStyle(
+                  color:Colors.black
+              )
+            )
+          : new SizedBox(
+            child: new Image.file(new File(imagePath)),
+      ),
     );
   }
 
