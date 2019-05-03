@@ -8,7 +8,6 @@ import 'AzureClient.dart';
 import 'package:image/image.dart' as pxImage;
 List<CameraDescription> cameras;
 
-// 実行されるmain関数
 Future<Null> main() async {
   try {
     cameras = await availableCameras();
@@ -34,11 +33,11 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   CameraController controller;
   File file;
-  double left = 219;
-  double top = 179;
-  double height = 400.0;
-  double width = 200.0;
-  Size size = null;
+  double left = 0;
+  double top = 0;
+  double height = 100;
+  double width = 100;
+  Size size;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
@@ -49,44 +48,56 @@ class _MyHomePageState extends State<MyHomePage> {
       key: _scaffoldKey,
       body: new Stack(
         children: <Widget>[
-         Positioned.fill(
-            child: _cameraPreviewWidget(),
-          ),
-          Positioned(
-            left: left,
-            top: top,
-            height: height,
-            width: width,
-            child: Padding(
-              padding: const EdgeInsets.all(1.0),
-              child: _thumbnailWidget()
-            ),
-          ),
+          _parameterWidget(),
+          _thumbnailWidget()
         ],
       ),
     );
   }
-  Widget _cameraPreviewWidget() {
-    if (controller == null || !controller.value.isInitialized) {
-      return GestureDetector(
-        onTap: onNewCameraSelected,
+  Widget _parameterWidget() {
+    return new Positioned.fill(
+        child:  (controller == null || !controller.value.isInitialized) ?
+            new GestureDetector(
+              onTap: onNewCameraSelected,
+              child: Container(
+                color: Colors.indigo,
+              ),
+            ):
+            new GestureDetector(
+              onTap: controller != null &&
+              controller.value.isInitialized
+              ? onTakePictureButtonPressed
+                  : null,
+              child: new AspectRatio(
+              aspectRatio: controller.value.aspectRatio,
+              child: new CameraPreview(controller),
+              ),
+            )
+    );
+  }
+  Widget _thumbnailWidget() {
+    return Positioned(
+      left: left,
+      top: top,
+      height: height,
+      width: width,
+      child: Padding(
+        padding: const EdgeInsets.all(1.0),
         child: Container(
-          color: Colors.indigo,
+          alignment: Alignment.centerRight,
+          child: file == null
+              ? new Text(
+              "hello",
+              style: TextStyle(
+                  color:Colors.white
+              )
+          )
+              : new SizedBox(
+            child: new Image.file(file),
+          ),
         ),
-      );
-    } else {
-      return GestureDetector(
-        onTap: controller != null &&
-            controller.value.isInitialized
-            ? onTakePictureButtonPressed
-            : null,
-        child: new AspectRatio(
-          aspectRatio: controller.value.aspectRatio,
-          child: new CameraPreview(controller),
-        ),
-      );
-
-    }
+      ),
+    );
   }
   void onNewCameraSelected() async {
     if (controller != null) {
@@ -108,23 +119,6 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {});
     }
   }
-  Widget _thumbnailWidget() {
-    return  new Container(
-      color: Colors.black,
-      alignment: Alignment.centerRight,
-      child: file == null
-          ? new Text(
-              "hello",
-              style: TextStyle(
-                  color:Colors.white
-              )
-            )
-          : new SizedBox(
-            child: new Image.file(file),
-      ),
-    );
-  }
-
   // カメラアイコンが押された時に呼ばれるコールバック関数
   void onTakePictureButtonPressed() async {
     String filePath = await takePicture();
@@ -137,10 +131,6 @@ class _MyHomePageState extends State<MyHomePage> {
     left = faceRectangleEntity.left.toDouble();
     height = faceRectangleEntity.height.toDouble();
     width = faceRectangleEntity.width.toDouble();
-//    print("${size.width}, ${size.height}");
-//    print("${image.width}, ${image.height}");
-//    print(face.faceRectangleEntity.toString());
-//    print(faceRectangleEntity.toString());
     if (mounted) {
       setState(() {});
     }
@@ -165,7 +155,6 @@ class _MyHomePageState extends State<MyHomePage> {
     } on CameraException catch (e) {
       return null;
     }
-
     return filePath;
   }
 }
