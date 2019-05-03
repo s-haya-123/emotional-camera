@@ -32,18 +32,18 @@ class MyHomePage extends StatefulWidget {
 }
 class _MyHomePageState extends State<MyHomePage> {
   CameraController controller;
-  File file;
-  double left = 0;
-  double top = 0;
-  double height = 100;
-  double width = 100;
-  Size size;
+  File pictureFile;
+  double parameterWidgetLeft = 0;
+  double parameterWidgetTop = 0;
+  double parameterWidgetHeight = 100;
+  double parameterWidgetWidth = 100;
+  Size displaySize;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
-    size = MediaQuery.of(context).size;
+    displaySize = MediaQuery.of(context).size;
     return new Scaffold(
       key: _scaffoldKey,
       body: new Stack(
@@ -77,15 +77,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   Widget _thumbnailWidget() {
     return Positioned(
-      left: left,
-      top: top,
-      height: height,
-      width: width,
+      left: parameterWidgetLeft,
+      top: parameterWidgetTop,
+      height: parameterWidgetHeight,
+      width: parameterWidgetWidth,
       child: Padding(
         padding: const EdgeInsets.all(1.0),
         child: Container(
           alignment: Alignment.centerRight,
-          child: file == null
+          child: pictureFile == null
               ? new Text(
               "hello",
               style: TextStyle(
@@ -93,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
               )
           )
               : new SizedBox(
-            child: new Image.file(file),
+            child: new Image.file(pictureFile),
           ),
         ),
       ),
@@ -122,15 +122,15 @@ class _MyHomePageState extends State<MyHomePage> {
   // カメラアイコンが押された時に呼ばれるコールバック関数
   void onTakePictureButtonPressed() async {
     String filePath = await takePicture();
-    file = new File(filePath);
-    pxImage.Image image = pxImage.decodeImage(file.readAsBytesSync());
-    FaceEntity face = await AzureRepository(size).detectFaceInfo(file, true, false, "emotion", "recognition_01", false);
+    pictureFile = new File(filePath);
+    pxImage.Image image = pxImage.decodeImage(pictureFile.readAsBytesSync());
+    FaceEntity face = await AzureRepository(displaySize).detectFaceInfo(pictureFile, true, false, "emotion", "recognition_01", false);
     FaceRectangleEntity faceRectangleEntity = face.faceRectangleEntity
-        .getDisplaySizeFaceRectangle(size, Size(image.height.toDouble(), image.width.toDouble()));
-    top = faceRectangleEntity.top.toDouble();
-    left = faceRectangleEntity.left.toDouble();
-    height = faceRectangleEntity.height.toDouble();
-    width = faceRectangleEntity.width.toDouble();
+        .getDisplaySizeFaceRectangle(displaySize, Size(image.height.toDouble(), image.width.toDouble()));
+    parameterWidgetTop = faceRectangleEntity.top.toDouble();
+    parameterWidgetLeft = faceRectangleEntity.left.toDouble();
+    parameterWidgetHeight = faceRectangleEntity.height.toDouble();
+    parameterWidgetWidth = faceRectangleEntity.width.toDouble();
     if (mounted) {
       setState(() {});
     }
