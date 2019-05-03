@@ -1,11 +1,13 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 
 class AzureRepository {
   final String url = "https://japaneast.api.cognitive.microsoft.com/face/v1.0/detect";
-
-  detectFaceInfo(
+  Size size;
+  AzureRepository(this.size);
+  Future<FaceEntity> detectFaceInfo(
       File file,
       bool returnFaceId,
       bool returnFaceLandmarks,
@@ -13,6 +15,7 @@ class AzureRepository {
       String recognitionModel,
       bool returnRecognitionModel
       ) async {
+
     final headers = {
       "Ocp-Apim-Subscription-Key": "",
       "Content-Type":"application/octet-stream",
@@ -22,13 +25,10 @@ class AzureRepository {
         +"&returnFaceAttributes="+returnFaceAttributes
         +"&recognitionModel="+recognitionModel
         +"&returnRecognitionModel="+returnRecognitionModel.toString();
-    print(url+"?"+parameters);
     final response = await http.post(url+"?"+parameters,
         headers: headers,
         body:file.readAsBytesSync()
     );
-    print(jsonDecode(response.body));
-    print(FaceEntity.fromJson({'faceId':"a"}).faceId);
     if (jsonDecode(response.body).length > 0) {
       return FaceEntity.fromJson(jsonDecode(response.body)[0]);
     } else {
@@ -42,18 +42,18 @@ class AzureRepository {
 
 class FaceEntity {
   String faceId;
-  FaceRectangleEntity _faceRectangleEntity;
-  FaceAttributesEntity _faceAttributesEntity;
+  FaceRectangleEntity faceRectangleEntity;
+  FaceAttributesEntity faceAttributesEntity;
   FaceEntity.fromJson(Map<String,dynamic> json){
     faceId = json.containsKey('faceId') ? json['faceId']:null;
-    _faceRectangleEntity = json.containsKey('faceRectangle') ? FaceRectangleEntity.fromJson(json['faceRectangle']):null;
-    _faceAttributesEntity = json.containsKey('faceAttributes') ? FaceAttributesEntity.fromJson(json['faceAttributes']):null;
+    faceRectangleEntity = json.containsKey('faceRectangle') ? FaceRectangleEntity.fromJson(json['faceRectangle']):null;
+    faceAttributesEntity = json.containsKey('faceAttributes') ? FaceAttributesEntity.fromJson(json['faceAttributes']):null;
   }
 
   Map<String,dynamic> toJson() =>
       {
         'faceId':faceId,
-        'faceRectangle':_faceRectangleEntity,
+        'faceRectangle':faceRectangleEntity,
       };
 }
 
@@ -62,6 +62,7 @@ class FaceRectangleEntity {
   int left;
   int width;
   int height;
+  FaceRectangleEntity(this.top,this.left,this.width,this.height);
   FaceRectangleEntity.fromJson(Map<String,dynamic> json){
     top = json.containsKey('top') ? json['top']:null;
     left = json.containsKey('left') ? json['left']:null;
@@ -74,15 +75,29 @@ class FaceRectangleEntity {
     'width': width,
     'height': height,
   };
+   FaceRectangleEntity getDisplaySizeFaceRectangle(Size displaySize, Size pictureSize){
+     double widthScale = displaySize.width / pictureSize.width;
+     double heightScale = displaySize.height / pictureSize.height;
+     return FaceRectangleEntity(
+         (top * heightScale).toInt(),
+         (left * widthScale).toInt(),
+         (width * widthScale).toInt(),
+         (height * heightScale).toInt()
+     );
+  }
+  @override
+  String toString() {
+    return "top: ${top}, left: ${left}, width: ${width}, height: ${height}";
+  }
 }
 
 class FaceAttributesEntity {
-  EmotionEntity _emotionEntity;
+  EmotionEntity emotionEntity;
   FaceAttributesEntity.fromJson(Map<String,dynamic> json){
-    _emotionEntity = json.containsKey('emotion') ? EmotionEntity.fromJson(json['emotion']):null;
+    emotionEntity = json.containsKey('emotion') ? EmotionEntity.fromJson(json['emotion']):null;
   }
   Map<String,dynamic> toJson() =>{
-    'emotion': _emotionEntity
+    'emotion': emotionEntity
   };
 }
 class EmotionEntity {

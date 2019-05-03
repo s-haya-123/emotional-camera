@@ -5,6 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'AzureClient.dart';
+import 'package:image/image.dart' as pxImage;
 List<CameraDescription> cameras;
 
 // 実行されるmain関数
@@ -32,16 +33,18 @@ class MyHomePage extends StatefulWidget {
 }
 class _MyHomePageState extends State<MyHomePage> {
   CameraController controller;
-  String imagePath;
-  double left = 100.0;
-  double top = 100.0;
-  double right = 100.0;
-  double bottom = 100.0;
+  File file;
+  double left = 219;
+  double top = 179;
+  double height = 400.0;
+  double width = 200.0;
+  Size size = null;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
+    size = MediaQuery.of(context).size;
     return new Scaffold(
       key: _scaffoldKey,
       body: new Stack(
@@ -52,8 +55,8 @@ class _MyHomePageState extends State<MyHomePage> {
           Positioned(
             left: left,
             top: top,
-            right: right,
-            bottom: bottom,
+            height: height,
+            width: width,
             child: Padding(
               padding: const EdgeInsets.all(1.0),
               child: _thumbnailWidget()
@@ -97,7 +100,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     try {
       await controller.initialize();
-    } on CameraException catch (e) {}
+    } on CameraException catch (e) {
+
+    }
 
     if (mounted) {
       setState(() {});
@@ -107,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return  new Container(
       color: Colors.black,
       alignment: Alignment.centerRight,
-      child: imagePath == null
+      child: file == null
           ? new Text(
               "hello",
               style: TextStyle(
@@ -115,21 +120,30 @@ class _MyHomePageState extends State<MyHomePage> {
               )
             )
           : new SizedBox(
-            child: new Image.file(new File(imagePath)),
+            child: new Image.file(file),
       ),
     );
   }
 
   // カメラアイコンが押された時に呼ばれるコールバック関数
-  void onTakePictureButtonPressed() {
-    takePicture().then((String filePath) {
-      if (mounted) {
-        setState(() {
-          imagePath = filePath;
-          AzureRepository().detectFaceInfo(new File(imagePath),true, false, "emotion", "recognition_01", false);
-        });
-      }
-    });
+  void onTakePictureButtonPressed() async {
+    String filePath = await takePicture();
+    file = new File(filePath);
+    pxImage.Image image = pxImage.decodeImage(file.readAsBytesSync());
+    FaceEntity face = await AzureRepository(size).detectFaceInfo(file, true, false, "emotion", "recognition_01", false);
+    FaceRectangleEntity faceRectangleEntity = face.faceRectangleEntity
+        .getDisplaySizeFaceRectangle(size, Size(image.height.toDouble(), image.width.toDouble()));
+    top = faceRectangleEntity.top.toDouble();
+    left = faceRectangleEntity.left.toDouble();
+    height = faceRectangleEntity.height.toDouble();
+    width = faceRectangleEntity.width.toDouble();
+//    print("${size.width}, ${size.height}");
+//    print("${image.width}, ${image.height}");
+//    print(face.faceRectangleEntity.toString());
+//    print(faceRectangleEntity.toString());
+    if (mounted) {
+      setState(() {});
+    }
   }
   String timestamp() => new DateTime.now().millisecondsSinceEpoch.toString();
   Future<String> takePicture() async {
