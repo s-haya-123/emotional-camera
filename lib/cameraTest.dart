@@ -48,13 +48,13 @@ class _MyHomePageState extends State<MyHomePage> {
       key: _scaffoldKey,
       body: new Stack(
         children: <Widget>[
+          _thumbnailWidget(),
           _parameterWidget(),
-          _thumbnailWidget()
         ],
       ),
     );
   }
-  Widget _parameterWidget() {
+  Widget _thumbnailWidget() {
     return new Positioned.fill(
         child:  (controller == null || !controller.value.isInitialized) ?
             new GestureDetector(
@@ -75,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
             )
     );
   }
-  Widget _thumbnailWidget() {
+  Widget _parameterWidget() {
     return Positioned(
       left: parameterWidgetLeft,
       top: parameterWidgetTop,
