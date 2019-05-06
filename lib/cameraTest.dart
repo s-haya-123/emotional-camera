@@ -56,12 +56,12 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
   Widget _cameraWidget() {
-    return  Align(
+    return Align(
       alignment: Alignment.bottomCenter,
       child:
          RaisedButton(
           color: Colors.amber,
-          onPressed: controller != null && controller.value.isInitialized
+          onPressed: isStartCamera()
               ? onTakePictureButtonPressed
               : null,
           child: Text(
@@ -72,28 +72,24 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
          ),
     );
-
   }
   Widget _thumbnailWidget() {
     return new Positioned.fill(
-        child:  (controller == null || !controller.value.isInitialized) ?
+        child:  !isStartCamera() ?
             new GestureDetector(
-              onTap: onNewCameraSelected,
+              onTap: startCameraPreview,
               child: Container(
                 color: Colors.indigo,
               ),
-            ):
-            new GestureDetector(
-              onTap: controller != null &&
-              controller.value.isInitialized
-              ? onTakePictureButtonPressed
-                  : null,
-              child: new AspectRatio(
+            )
+            : new AspectRatio(
               aspectRatio: controller.value.aspectRatio,
               child: new CameraPreview(controller),
-              ),
-            )
+            ),
     );
+  }
+  bool isStartCamera(){
+    return controller != null && controller.value.isInitialized;
   }
   Widget _parameterWidget() {
     return Positioned(
@@ -119,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-  void onNewCameraSelected() async {
+  void startCameraPreview() async {
     if (controller != null) {
       await controller.dispose();
     }
