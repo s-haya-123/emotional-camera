@@ -100,17 +100,16 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Padding(
         padding: const EdgeInsets.all(1.0),
         child: Container(
-          alignment: Alignment.centerRight,
           child: pictureFile == null
-              ? new Text(
-              "hello",
-              style: TextStyle(
-                  color:Colors.white
-              )
-          )
-              : new SizedBox(
-            child: new Image.file(pictureFile),
-          ),
+              ? Container()
+              : Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                      color: Colors.deepOrange,
+                      width: 7.0
+                  ),
+                ),
+              ),
         ),
       ),
     );
