@@ -8,6 +8,9 @@ import 'AzureClient.dart';
 import 'package:image/image.dart' as pxImage;
 List<CameraDescription> cameras;
 
+enum DisplayPosition {
+  TOP_RIGHT,TOP_LEFT,BOTTOM_RIGHT,BOTTOM_LEFT
+}
 Future<Null> main() async {
   try {
     cameras = await availableCameras();
@@ -33,10 +36,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   CameraController controller;
   File pictureFile;
-  double parameterWidgetLeft = 0;
-  double parameterWidgetTop = 0;
-  double parameterWidgetHeight = 100;
-  double parameterWidgetWidth = 100;
+  double rectangleWidgetLeft = 0;
+  double rectangleWidgetTop = 0;
+  double rectangleWidgetHeight = 100;
+  double rectangleWidgetWidth = 100;
   Size displaySize;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -49,7 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: new Stack(
         children: <Widget>[
           _thumbnailWidget(),
-          _parameterWidget(),
+          _rectangleWidget(),
           _cameraWidget(),
         ],
       ),
@@ -91,12 +94,12 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isStartCamera(){
     return controller != null && controller.value.isInitialized;
   }
-  Widget _parameterWidget() {
+  Widget _rectangleWidget() {
     return Positioned(
-      left: parameterWidgetLeft,
-      top: parameterWidgetTop,
-      height: parameterWidgetHeight,
-      width: parameterWidgetWidth,
+      left: rectangleWidgetLeft,
+      top: rectangleWidgetTop,
+      height: rectangleWidgetHeight,
+      width: rectangleWidgetWidth,
       child: Padding(
         padding: const EdgeInsets.all(1.0),
         child: Container(
@@ -143,15 +146,32 @@ class _MyHomePageState extends State<MyHomePage> {
     if (face != null && face.faceRectangleEntity != null){
       FaceRectangleEntity faceRectangleEntity = face.faceRectangleEntity
           .getDisplaySizeFaceRectangle(displaySize, Size(image.height.toDouble(), image.width.toDouble()));
-      parameterWidgetTop = faceRectangleEntity.top.toDouble();
-      parameterWidgetLeft = faceRectangleEntity.left.toDouble();
-      parameterWidgetHeight = faceRectangleEntity.height.toDouble();
-      parameterWidgetWidth = faceRectangleEntity.width.toDouble();
-    }
+      rectangleWidgetTop = faceRectangleEntity.top.toDouble();
+      rectangleWidgetLeft = faceRectangleEntity.left.toDouble();
+      rectangleWidgetHeight = faceRectangleEntity.height.toDouble();
+      rectangleWidgetWidth = faceRectangleEntity.width.toDouble();
 
+      print(getDisplayPosition(displaySize, rectangleWidgetLeft, rectangleWidgetTop).toString());
+    }
 
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  double calcUnhappyCoefficient(EmotionEntity emotionEntity){
+    return emotionEntity.anger * 300 + emotionEntity.disgust * 100 + emotionEntity.sadness * 300 + emotionEntity.contempt * 100;
+  }
+  DisplayPosition getDisplayPosition(Size displaySize, double faceLeft, double faceTop){
+    if(faceLeft < displaySize.width /2 && faceTop < displaySize.height / 2){
+      return DisplayPosition.TOP_LEFT;
+    } else if(faceLeft >= displaySize.width /2 && faceTop < displaySize.height / 2) {
+      return DisplayPosition.TOP_RIGHT;
+    }
+    else if(faceLeft < displaySize.width /2 && faceTop >= displaySize.height / 2) {
+      return DisplayPosition.BOTTOM_LEFT;
+    } else {
+      return DisplayPosition.BOTTOM_RIGHT;
     }
   }
   String timestamp() => new DateTime.now().millisecondsSinceEpoch.toString();
