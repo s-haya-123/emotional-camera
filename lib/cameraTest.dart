@@ -60,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
       alignment: Alignment.bottomCenter,
       child:
          RaisedButton(
-          color: Colors.amber,
+          color: Colors.green,
           onPressed: isStartCamera()
               ? onTakePictureButtonPressed
               : null,
@@ -141,12 +141,16 @@ class _MyHomePageState extends State<MyHomePage> {
     pictureFile = new File(filePath);
     pxImage.Image image = pxImage.decodeImage(pictureFile.readAsBytesSync());
     FaceEntity face = await AzureRepository(displaySize).detectFaceInfo(pictureFile, true, false, "emotion", "recognition_01", false);
-    FaceRectangleEntity faceRectangleEntity = face.faceRectangleEntity
-        .getDisplaySizeFaceRectangle(displaySize, Size(image.height.toDouble(), image.width.toDouble()));
-    parameterWidgetTop = faceRectangleEntity.top.toDouble();
-    parameterWidgetLeft = faceRectangleEntity.left.toDouble();
-    parameterWidgetHeight = faceRectangleEntity.height.toDouble();
-    parameterWidgetWidth = faceRectangleEntity.width.toDouble();
+    if (face != null && face.faceRectangleEntity != null){
+      FaceRectangleEntity faceRectangleEntity = face.faceRectangleEntity
+          .getDisplaySizeFaceRectangle(displaySize, Size(image.height.toDouble(), image.width.toDouble()));
+      parameterWidgetTop = faceRectangleEntity.top.toDouble();
+      parameterWidgetLeft = faceRectangleEntity.left.toDouble();
+      parameterWidgetHeight = faceRectangleEntity.height.toDouble();
+      parameterWidgetWidth = faceRectangleEntity.width.toDouble();
+    }
+
+
     if (mounted) {
       setState(() {});
     }
