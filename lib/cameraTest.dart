@@ -40,6 +40,11 @@ class _MyHomePageState extends State<MyHomePage> {
   double rectangleWidgetTop = 0;
   double rectangleWidgetHeight = 100;
   double rectangleWidgetWidth = 100;
+
+  double coefficientWidgetLeft = 0;
+  double coefficientWidgetTop = 0;
+  double coefficientWidgetHeight = 200;
+  double coefficientWidgetWidth = 200;
   Size displaySize;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -53,9 +58,28 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           _thumbnailWidget(),
           _rectangleWidget(),
+          _coefficientWidget(),
           _cameraWidget(),
         ],
       ),
+    );
+  }
+
+  Widget _coefficientWidget() {
+    return Positioned(
+      left: coefficientWidgetLeft,
+      top: coefficientWidgetTop,
+      height: coefficientWidgetHeight,
+      width: coefficientWidgetWidth,
+      child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+                color: Colors.white,
+                width: 7.0
+            ),
+          ),
+        ),
     );
   }
   Widget _cameraWidget() {
@@ -151,7 +175,31 @@ class _MyHomePageState extends State<MyHomePage> {
       rectangleWidgetHeight = faceRectangleEntity.height.toDouble();
       rectangleWidgetWidth = faceRectangleEntity.width.toDouble();
 
-      print(getDisplayPosition(displaySize, rectangleWidgetLeft, rectangleWidgetTop).toString());
+      switch (getDisplayPosition(displaySize, rectangleWidgetLeft, rectangleWidgetTop)) {
+        case DisplayPosition.BOTTOM_RIGHT: {
+          coefficientWidgetTop = rectangleWidgetTop - coefficientWidgetHeight;
+          coefficientWidgetLeft = rectangleWidgetLeft - coefficientWidgetWidth;
+          break;
+        }
+        case DisplayPosition.BOTTOM_LEFT: {
+          coefficientWidgetTop = rectangleWidgetTop - coefficientWidgetHeight;
+          coefficientWidgetLeft = rectangleWidgetLeft + rectangleWidgetWidth;
+          break;
+        }
+        case DisplayPosition.TOP_RIGHT: {
+          coefficientWidgetTop = rectangleWidgetTop + rectangleWidgetHeight;
+          coefficientWidgetLeft = rectangleWidgetLeft - coefficientWidgetWidth;
+          break;
+        }
+        case DisplayPosition.TOP_LEFT: {
+          coefficientWidgetTop = rectangleWidgetTop + rectangleWidgetHeight;
+          coefficientWidgetLeft = rectangleWidgetLeft + rectangleWidgetWidth;
+          break;
+        }
+        default: {
+          break;
+        }
+      }
     }
 
     if (mounted) {
