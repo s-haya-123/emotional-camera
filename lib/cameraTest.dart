@@ -50,9 +50,29 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           _thumbnailWidget(),
           _parameterWidget(),
+          _cameraWidget(),
         ],
       ),
     );
+  }
+  Widget _cameraWidget() {
+    return  Align(
+      alignment: Alignment.bottomCenter,
+      child:
+         RaisedButton(
+          color: Colors.amber,
+          onPressed: controller != null && controller.value.isInitialized
+              ? onTakePictureButtonPressed
+              : null,
+          child: Text(
+            "ANALYZE",
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+         ),
+    );
+
   }
   Widget _thumbnailWidget() {
     return new Positioned.fill(
