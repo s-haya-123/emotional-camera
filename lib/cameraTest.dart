@@ -71,7 +71,8 @@ class _MyHomePageState extends State<MyHomePage> {
       top: coefficientWidgetTop,
       height: coefficientWidgetHeight,
       width: coefficientWidgetWidth,
-      child: Container(
+      child: pictureFile != null
+          ? Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
@@ -79,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 width: 7.0
             ),
           ),
-        ),
+        ): Container(),
     );
   }
   Widget _cameraWidget() {
@@ -88,11 +89,19 @@ class _MyHomePageState extends State<MyHomePage> {
       child:
          RaisedButton(
           color: Colors.green,
-          onPressed: isStartCamera()
-              ? onTakePictureButtonPressed
-              : null,
+          onPressed: () {
+            if(isStartCamera() && pictureFile == null) {
+              onTakePictureButtonPressed();
+            } else if(isStartCamera() && pictureFile  != null) {
+              setState(() {
+                pictureFile = null;
+              });
+            } else {
+              startCameraPreview();
+            }
+          },
           child: Text(
-            "ANALYZE",
+            isStartCamera() && pictureFile == null ? "ANALYZE": "START",
             style: TextStyle(
               color: Colors.white,
             ),
@@ -102,18 +111,26 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   Widget _thumbnailWidget() {
     return new Positioned.fill(
-        child:  !isStartCamera() ?
-            new GestureDetector(
-              onTap: startCameraPreview,
-              child: Container(
-                color: Colors.indigo,
-              ),
-            )
-            : new AspectRatio(
-              aspectRatio: controller.value.aspectRatio,
-              child: new CameraPreview(controller),
-            ),
+        child:  !isStartCamera()
+            ? Container(
+                color: Colors.blue,
+              )
+            : _takedPictureWidget(),
     );
+  }
+  Widget _takedPictureWidget() {
+    return pictureFile == null
+        ? new AspectRatio(
+            aspectRatio: controller.value.aspectRatio,
+            child: new CameraPreview(controller),
+          )
+        : Image.file(
+          pictureFile,
+          fit: BoxFit.cover,
+          height: double.infinity,
+          width: double.infinity,
+          alignment: Alignment.center,
+        );
   }
   bool isStartCamera(){
     return controller != null && controller.value.isInitialized;
