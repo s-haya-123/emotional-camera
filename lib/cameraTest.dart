@@ -5,7 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'AzureClient.dart';
-import 'package:image/image.dart' as pxImage;
+import 'package:flutter_native_image/flutter_native_image.dart';
 List<CameraDescription> cameras;
 
 enum DisplayPosition {
@@ -149,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
               : Container(
                 decoration: BoxDecoration(
                   border: Border.all(
-                      color: Colors.deepOrange,
+                      color: Colors.amber,
                       width: 7.0
                   ),
                 ),
@@ -182,11 +182,19 @@ class _MyHomePageState extends State<MyHomePage> {
   void onTakePictureButtonPressed() async {
     String filePath = await takePicture();
     pictureFile = new File(filePath);
-    pxImage.Image image = pxImage.decodeImage(pictureFile.readAsBytesSync());
     FaceEntity face = await AzureRepository(displaySize).detectFaceInfo(pictureFile, true, false, "emotion", "recognition_01", false);
+    setAttributesWidgetParameter(face, pictureFile);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void setAttributesWidgetParameter(FaceEntity face, File pictureFile) async {
+    ImageProperties image = await FlutterNativeImage.getImageProperties(pictureFile.path);
     if (face != null && face.faceRectangleEntity != null){
+      Size imageSize = getImageSize(displaySize,image);
       FaceRectangleEntity faceRectangleEntity = face.faceRectangleEntity
-          .getDisplaySizeFaceRectangle(displaySize, Size(image.height.toDouble(), image.width.toDouble()));
+          .getDisplaySizeFaceRectangle(displaySize, imageSize);
       rectangleWidgetTop = faceRectangleEntity.top.toDouble();
       rectangleWidgetLeft = faceRectangleEntity.left.toDouble();
       rectangleWidgetHeight = faceRectangleEntity.height.toDouble();
@@ -218,9 +226,15 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     }
-
-    if (mounted) {
-      setState(() {});
+  }
+  Size getImageSize(Size displaySize, ImageProperties image){
+    if (
+        (displaySize.width > displaySize.height && image.width > image.height)
+        || (displaySize.width < displaySize.height && image.width < image.height)
+    ) {
+      return Size(image.width.toDouble(),image.height.toDouble());
+    } else {
+      return Size(image.height.toDouble(),image.width.toDouble());
     }
   }
 
