@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'AzureClient.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
+import 'package:flutter/services.dart';
+
 List<CameraDescription> cameras;
 
 enum DisplayPosition {
@@ -48,7 +50,13 @@ class _MyHomePageState extends State<MyHomePage> {
   Size displaySize;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp
+    ]);
+  }
   @override
   Widget build(BuildContext context) {
     displaySize = MediaQuery.of(context).size;
@@ -59,9 +67,21 @@ class _MyHomePageState extends State<MyHomePage> {
           _thumbnailWidget(),
           _rectangleWidget(),
           _coefficientWidget(),
+          _overayImageWidget(),
           _cameraWidget(),
         ],
       ),
+    );
+  }
+  Widget _overayImageWidget() {
+    return Positioned.fill(
+        child: Image.asset(
+          'images/psychopass.png',
+          fit: BoxFit.cover,
+          height: double.infinity,
+          width: double.infinity,
+          alignment: Alignment.center,
+        )
     );
   }
 
@@ -163,7 +183,6 @@ class _MyHomePageState extends State<MyHomePage> {
       await controller.dispose();
     }
     controller = new CameraController(cameras[0], ResolutionPreset.high);
-
     controller.addListener(() {
       if (mounted) setState(() {});
     });
