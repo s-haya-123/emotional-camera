@@ -45,8 +45,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   double coefficientWidgetLeft = 0;
   double coefficientWidgetTop = 0;
-  double coefficientWidgetHeight = 200;
-  double coefficientWidgetWidth = 200;
+  double coefficientValue = 0;
+  final double coefficientWidgetHeight = 100;
+  final double coefficientWidgetWidth = 100;
   Size displaySize;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -93,13 +94,24 @@ class _MyHomePageState extends State<MyHomePage> {
       width: coefficientWidgetWidth,
       child: pictureFile != null
           ? Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-                color: Colors.white,
-                width: 7.0
-            ),
-          ),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: Colors.white,
+                    width: 7.0
+                ),
+              ),
+              child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        coefficientValue.toStringAsFixed(1),
+                        style: TextStyle(
+                          fontSize: 30,
+                          color: Colors.white
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                    )
         ): Container(),
     );
   }
@@ -218,6 +230,8 @@ class _MyHomePageState extends State<MyHomePage> {
       rectangleWidgetLeft = faceRectangleEntity.left.toDouble();
       rectangleWidgetHeight = faceRectangleEntity.height.toDouble();
       rectangleWidgetWidth = faceRectangleEntity.width.toDouble();
+
+      coefficientValue = calcUnhappyCoefficient(face.faceAttributesEntity.emotionEntity);
 
       switch (getDisplayPosition(displaySize, rectangleWidgetLeft, rectangleWidgetTop)) {
         case DisplayPosition.BOTTOM_RIGHT: {
