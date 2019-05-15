@@ -68,10 +68,27 @@ class _MyHomePageState extends State<MyHomePage> {
           _thumbnailWidget(),
           _rectangleWidget(),
           _coefficientWidget(),
+          _coefficientTextWidget(),
           _overayImageWidget(),
           _cameraWidget(),
         ],
       ),
+    );
+  }
+  Widget _coefficientTextWidget() {
+    return Positioned(
+      left: coefficientWidgetLeft + coefficientWidgetWidth /2,
+      top: coefficientWidgetTop + coefficientWidgetHeight / 3,
+      child: pictureFile == null
+          ? Container()
+          : Text(
+              coefficientValue.toStringAsFixed(1),
+              style: TextStyle(
+                fontSize: 30,
+                color: Color.fromRGBO(255, 255, 255, 1),
+              ),
+              textAlign: TextAlign.left,
+            ),
     );
   }
   Widget _overayImageWidget() {
@@ -97,22 +114,12 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                    color: Colors.white,
+                    color: Color.fromRGBO(255, 255, 255, 0.5),
                     width: 7.0
                 ),
               ),
-              child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        coefficientValue.toStringAsFixed(1),
-                        style: TextStyle(
-                          fontSize: 30,
-                          color: Colors.white
-                        ),
-                        textAlign: TextAlign.left,
-                      ),
-                    )
-        ): Container(),
+            )
+          : Container(),
     );
   }
   Widget _cameraWidget() {
@@ -181,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
               : Container(
                 decoration: BoxDecoration(
                   border: Border.all(
-                      color: Colors.amber,
+                      color: Colors.red,
                       width: 7.0
                   ),
                 ),
