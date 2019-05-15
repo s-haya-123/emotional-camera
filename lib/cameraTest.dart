@@ -49,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final double coefficientWidgetHeight = 100;
   final double coefficientWidgetWidth = 100;
   Size displaySize;
+  bool isShowResultWidget = false;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   @override
@@ -79,16 +80,16 @@ class _MyHomePageState extends State<MyHomePage> {
     return Positioned(
       left: coefficientWidgetLeft + coefficientWidgetWidth /2,
       top: coefficientWidgetTop + coefficientWidgetHeight / 3,
-      child: pictureFile == null
-          ? Container()
-          : Text(
+      child: isShowResultWidget
+          ? Text(
               coefficientValue.toStringAsFixed(1),
               style: TextStyle(
                 fontSize: 30,
                 color: Color.fromRGBO(255, 255, 255, 1),
               ),
               textAlign: TextAlign.left,
-            ),
+            )
+          : Container(),
     );
   }
   Widget _overayImageWidget() {
@@ -109,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
       top: coefficientWidgetTop,
       height: coefficientWidgetHeight,
       width: coefficientWidgetWidth,
-      child: pictureFile != null
+      child: isShowResultWidget
           ? Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -134,6 +135,7 @@ class _MyHomePageState extends State<MyHomePage> {
             } else if(isStartCamera() && pictureFile  != null) {
               setState(() {
                 pictureFile = null;
+                isShowResultWidget = false;
               });
             } else {
               startCameraPreview();
@@ -183,16 +185,16 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Padding(
         padding: const EdgeInsets.all(1.0),
         child: Container(
-          child: pictureFile == null
-              ? Container()
-              : Container(
+          child: isShowResultWidget
+              ? Container(
                 decoration: BoxDecoration(
                   border: Border.all(
                       color: Colors.red,
                       width: 7.0
                   ),
                 ),
-              ),
+              )
+              : Container(),
         ),
       ),
     );
@@ -237,6 +239,7 @@ class _MyHomePageState extends State<MyHomePage> {
       rectangleWidgetLeft = faceRectangleEntity.left.toDouble();
       rectangleWidgetHeight = faceRectangleEntity.height.toDouble();
       rectangleWidgetWidth = faceRectangleEntity.width.toDouble();
+      isShowResultWidget = true;
 
       coefficientValue = calcUnhappyCoefficient(face.faceAttributesEntity.emotionEntity);
 
