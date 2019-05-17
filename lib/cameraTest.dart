@@ -69,29 +69,13 @@ class _MyHomePageState extends State<MyHomePage> {
           _thumbnailWidget(),
           _rectangleWidget(),
           _coefficientWidget(),
-          _coefficientTextWidget(),
           _overayImageWidget(),
           _cameraWidget(),
         ],
       ),
     );
   }
-  Widget _coefficientTextWidget() {
-    return Positioned(
-      left: coefficientWidgetLeft + coefficientWidgetWidth /2,
-      top: coefficientWidgetTop + coefficientWidgetHeight / 3,
-      child: isShowResultWidget
-          ? Text(
-              coefficientValue.toStringAsFixed(1),
-              style: TextStyle(
-                fontSize: 30,
-                color: Color.fromRGBO(255, 255, 255, 1),
-              ),
-              textAlign: TextAlign.left,
-            )
-          : Container(),
-    );
-  }
+
   Widget _overayImageWidget() {
     return Positioned.fill(
         child: Image.asset(
@@ -105,23 +89,76 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _coefficientWidget() {
-    return Positioned(
-      left: coefficientWidgetLeft,
-      top: coefficientWidgetTop,
-      height: coefficientWidgetHeight,
-      width: coefficientWidgetWidth,
-      child: isShowResultWidget
-          ? Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                    color: Color.fromRGBO(255, 255, 255, 0.5),
-                    width: 7.0
-                ),
+    return isShowResultWidget ? Stack(
+      children: <Widget>[
+        Positioned(
+          left: coefficientWidgetLeft,
+          top: coefficientWidgetTop,
+          height: coefficientWidgetHeight,
+          width: coefficientWidgetWidth,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                  color: Color.fromRGBO(255, 255, 255, 0.5),
+                  width: 7.0
               ),
+            ),
+          )
+        ),
+        Positioned(
+          left: coefficientWidgetLeft + coefficientWidgetWidth /2,
+          top: coefficientWidgetTop + coefficientWidgetHeight / 3,
+          child: Text(
+            coefficientValue.toStringAsFixed(1),
+            style: TextStyle(
+              fontSize: 30,
+              color: Color.fromRGBO(255, 255, 255, 1),
+            ),
+            textAlign: TextAlign.left,
+          )
+        ),
+        Positioned(
+          left: coefficientWidgetLeft + coefficientWidgetWidth /2,
+          top: coefficientWidgetTop + coefficientWidgetHeight / 3 - 20,
+          width: 90,
+          height: 12,
+          child: Container(
+            color: Color.fromRGBO(0, 0, 0, 0.5),
+            child: Text(
+              "COEFFICIENT",
+              style: TextStyle( color: Colors.white, fontSize: 12),
+            ),
+          ),
+        ),
+        Positioned(
+          left: coefficientWidgetLeft + coefficientWidgetWidth /2,
+          top: coefficientWidgetTop + coefficientWidgetHeight / 3 + 35,
+          width: 90,
+          height: 12,
+          child: Container(
+            color: Color.fromRGBO(0, 0, 0, 0.5),
+            child: Text(
+              "TARGET",
+              style: TextStyle( color: Colors.white, fontSize: 12),
+            ),
+          ),
+        ),
+        Positioned(
+            left: coefficientWidgetLeft + coefficientWidgetWidth /2,
+            top: coefficientWidgetTop + coefficientWidgetHeight / 3 + 47,
+            child: Text(
+              coefficientValue > 100 ? "EXECUTION":"NOT TARGET",
+              style: TextStyle(
+                fontSize: 15,
+                color: Color.fromRGBO(255, 255, 255, 1),
+              ),
+              textAlign: TextAlign.left,
             )
-          : Container(),
-    );
+        ),
+      ],
+    )
+        : Container();
   }
   Widget _cameraWidget() {
     return Align(
