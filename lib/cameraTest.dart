@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'AzureClient.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 List<CameraDescription> cameras;
 
@@ -251,6 +252,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
     }
 
+    FlutterTts flutterTts = new FlutterTts();
+    List<dynamic> languages = await flutterTts.getLanguages;
+    await flutterTts.setLanguage("en-us");
+    await flutterTts.setSpeechRate(1.0);
+    await flutterTts.setVolume(1.0);
+    await flutterTts.setPitch(1.0);
+    await flutterTts.isLanguageAvailable("en-us");
+    var result = await flutterTts.speak("Hello World");
+    print(result);
     if (mounted) {
       setState(() {});
     }
