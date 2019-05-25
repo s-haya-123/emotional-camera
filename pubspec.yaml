@@ -30,6 +30,7 @@ dependencies:
   flutter_native_image:
     git: https://github.com/btastic/flutter_native_image.git
   flutter_tts: ^0.2.4
+  scoped_model: ^0.3.0
 
 
 

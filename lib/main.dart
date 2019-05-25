@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
+import 'package:analyze_emotion/CameraModel.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 List<CameraDescription> cameras;
 
@@ -12,6 +12,9 @@ Future<Null> main() async {
   try {
     cameras = await availableCameras();
   } on CameraException catch (e) {}
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp
+  ]);
 
   runApp(new MyApp());
 }
@@ -20,201 +23,196 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      home: new MyHomePage(),
+        home: ScopedModel<CameraModel>(model: CameraModel(cameras[0]), child: _MyHomePageState())
     );
   }
 }
 
-// Stateを持つWidgetオブジェクト
-class MyHomePage extends StatefulWidget {
-  @override
-  _MyHomePageState createState() => new _MyHomePageState();
-}
-class _MyHomePageState extends State<MyHomePage> {
-  CameraController controller;
-  String imagePath;
+class _MyHomePageState extends StatelessWidget {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      key: _scaffoldKey,
-      body: new Column(
-        children: <Widget>[
-          new Expanded(
-            child: new Container(
-              child: new Padding(
-                padding: const EdgeInsets.all(1.0),
-                child: new Center(
-                  child: _cameraPreviewWidget(),
+    Size displaySize = MediaQuery.of(context).size;
+    return ScopedModelDescendant<CameraModel>(
+      builder: (context, child, model) {
+        model.displaySize = displaySize;
+        return new Scaffold(
+        key: _scaffoldKey,
+        body: new Stack(
+          children: <Widget>[
+            _thumbnailWidget(model),
+            _rectangleWidget(model),
+            _coefficientWidget(model),
+            _overayImageWidget(),
+            _cameraWidget(model),
+          ],
+        ),
+      );
+      }
+    );
+  }
+
+  Widget _overayImageWidget() {
+    return Positioned.fill(
+        child: Image.asset(
+          'images/psychopass.png',
+          fit: BoxFit.cover,
+          height: double.infinity,
+          width: double.infinity,
+          alignment: Alignment.center,
+        )
+    );
+  }
+
+  Widget _coefficientWidget(CameraModel model) {
+    return model.isShowResultWidget ? Stack(
+      children: <Widget>[
+        Positioned(
+            left: model.coefficientWidgetLeft,
+            top: model.coefficientWidgetTop,
+            height: model.coefficientWidgetHeight,
+            width: model.coefficientWidgetWidth,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: Color.fromRGBO(255, 255, 255, 0.5),
+                    width: 7.0
                 ),
               ),
+            )
+        ),
+        Positioned(
+            left: model.coefficientWidgetLeft + model.coefficientWidgetWidth /2,
+            top: model.coefficientWidgetTop + model.coefficientWidgetHeight / 3,
+            child: Text(
+              model.coefficientValue.toStringAsFixed(1),
+              style: TextStyle(
+                fontSize: 30,
+                color: Color.fromRGBO(255, 255, 255, 1),
+              ),
+              textAlign: TextAlign.left,
+            )
+        ),
+        Positioned(
+          left: model.coefficientWidgetLeft + model.coefficientWidgetWidth /2,
+          top: model.coefficientWidgetTop + model.coefficientWidgetHeight / 3 - 20,
+          width: 90,
+          height: 12,
+          child: Container(
+            color: Color.fromRGBO(0, 0, 0, 0.5),
+            child: Text(
+              "COEFFICIENT",
+              style: TextStyle( color: Colors.white, fontSize: 12),
             ),
           ),
-          _captureIconWidget(),
-          new Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: new Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                _cameraTogglesRowWidget(),
-                _thumbnailWidget(),
-              ],
+        ),
+        Positioned(
+          left: model.coefficientWidgetLeft + model.coefficientWidgetWidth /2,
+          top: model.coefficientWidgetTop + model.coefficientWidgetHeight / 3 + 35,
+          width: 90,
+          height: 12,
+          child: Container(
+            color: Color.fromRGBO(0, 0, 0, 0.5),
+            child: Text(
+              "TARGET",
+              style: TextStyle( color: Colors.white, fontSize: 12),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  // カメラのプレビューWidget
-  Widget _cameraPreviewWidget() {
-    if (controller == null || !controller.value.isInitialized) {
-      return const Text(
-        'Tap a camera',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 24.0,
-          fontWeight: FontWeight.w900,
         ),
-      );
-    } else {
-      return new AspectRatio(
-        aspectRatio: controller.value.aspectRatio,
-        child: new CameraPreview(controller),
-      );
-    }
-  }
-
-  // サムネイルWidget
-  Widget _thumbnailWidget() {
-    return new Expanded(
-      child: new Align(
-        alignment: Alignment.centerRight,
-        child: imagePath == null
-            ? null
-            : new SizedBox(
-          child: new Image.file(new File(imagePath)),
-          width: 64.0,
-          height: 64.0,
-        ),
-      ),
-    );
-  }
-
-  // カメラのアイコンWidget
-  Widget _captureIconWidget() {
-    return new Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      mainAxisSize: MainAxisSize.max,
-      children: <Widget>[
-        new IconButton(
-          icon: const Icon(Icons.camera_alt),
-          color: Colors.blue,
-          onPressed: controller != null &&
-              controller.value.isInitialized
-              ? onTakePictureButtonPressed
-              : null,
+        Positioned(
+            left: model.coefficientWidgetLeft + model.coefficientWidgetWidth /2,
+            top: model.coefficientWidgetTop + model.coefficientWidgetHeight / 3 + 47,
+            child: Text(
+              model.coefficientValue > 100 ? "EXECUTION":"NOT TARGET",
+              style: TextStyle(
+                fontSize: 15,
+                color: Color.fromRGBO(255, 255, 255, 1),
+              ),
+              textAlign: TextAlign.left,
+            )
         ),
       ],
+    )
+        : Container();
+  }
+  Widget _cameraWidget(CameraModel model) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child:
+      RaisedButton(
+        color: Colors.green,
+        onPressed: () {
+          if(isStartCamera(model) && model.pictureFile == null) {
+            model.onTakePictureButtonPressed();
+          } else if(isStartCamera(model) && model.pictureFile  != null) {
+            model.resetTakedPicture();
+          } else {
+            model.startCameraPreview();
+          }
+        },
+        child: Text(
+          isStartCamera(model) && model.pictureFile == null ? "ANALYZE": "START",
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
-
-  // カメラのインアウトを切り替えるトグルWidget
-  Widget _cameraTogglesRowWidget() {
-    final List<Widget> toggles = <Widget>[];
-
-    if (cameras.isEmpty) {
-      return const Text('No camera found');
-    } else {
-      for (CameraDescription cameraDescription in cameras) {
-        toggles.add(
-          new SizedBox(
-            width: 90.0,
-            child: new RadioListTile<CameraDescription>(
-              title:
-              new Icon(getCameraLensIcon(cameraDescription.lensDirection)),
-              groupValue: controller?.description,
-              value: cameraDescription,
-              onChanged: onNewCameraSelected,
-            ),
-          ),
+  Widget _thumbnailWidget(CameraModel model) {
+    return new Positioned.fill(
+      child:  !isStartCamera(model)
+          ? Container(
+        color: Colors.blue,
+      )
+          : _takedPictureWidget(model),
+    );
+  }
+  Widget _takedPictureWidget(CameraModel model) {
+    return ScopedModelDescendant<CameraModel>(
+      builder: (context, child, model) {
+        return model.pictureFile == null
+            ? new AspectRatio(
+          aspectRatio: model.controller.value.aspectRatio,
+          child: new CameraPreview(model.controller),
+        )
+            : Image.file(
+          model.pictureFile,
+          fit: BoxFit.cover,
+          height: double.infinity,
+          width: double.infinity,
+          alignment: Alignment.center,
         );
-      }
-    }
-
-    return new Row(children: toggles);
+      },
+    );
   }
-
-  // トグルが選択された時に呼ばれるコールバック関数
-  void onNewCameraSelected(CameraDescription cameraDescription) async {
-    if (controller != null) {
-      await controller.dispose();
-    }
-    controller = new CameraController(cameraDescription, ResolutionPreset.high);
-
-    controller.addListener(() {
-      if (mounted) setState(() {});
-    });
-
-    try {
-      await controller.initialize();
-    } on CameraException catch (e) {}
-
-    if (mounted) {
-      setState(() {});
-    }
+  bool isStartCamera(CameraModel model){
+    return model.controller != null && model.controller.value.isInitialized;
   }
-
-  // カメラアイコンが押された時に呼ばれるコールバック関数
-  void onTakePictureButtonPressed() {
-    takePicture().then((String filePath) {
-      if (mounted) {
-        setState(() {
-          imagePath = filePath;
-        });
-      }
-    });
-  }
-
-  // タイムスタンプを返す関数
-  String timestamp() => new DateTime.now().millisecondsSinceEpoch.toString();
-
-  // カメラで撮影した画像を保存する関数(非同期)
-  Future<String> takePicture() async {
-    if (!controller.value.isInitialized) {
-      return null;
-    }
-
-    final Directory extDir = await getApplicationDocumentsDirectory();
-    final String dirPath = '${extDir.path}/Pictures/flutter_test';
-    await new Directory(dirPath).create(recursive: true);
-    final String filePath = '$dirPath/${timestamp()}.jpg';
-
-    if (controller.value.isTakingPicture) {
-      return null;
-    }
-
-    try {
-      await controller.takePicture(filePath);
-    } on CameraException catch (e) {
-      return null;
-    }
-
-    return filePath;
-  }
-
-  // カメラのアイコン画像を返す関数
-  IconData getCameraLensIcon(CameraLensDirection direction) {
-    switch (direction) {
-      case CameraLensDirection.back:
-        return Icons.camera_rear;
-      case CameraLensDirection.front:
-        return Icons.camera_front;
-      case CameraLensDirection.external:
-        return Icons.camera;
-    }
-    throw new ArgumentError('Unknown lens direction');
+  Widget _rectangleWidget(CameraModel model) {
+    return Positioned(
+      left: model.rectangleWidgetLeft,
+      top: model.rectangleWidgetTop,
+      height: model.rectangleWidgetHeight,
+      width: model.rectangleWidgetWidth,
+      child: Padding(
+        padding: const EdgeInsets.all(1.0),
+        child: Container(
+          child: model.isShowResultWidget
+              ? Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                  color: Colors.red,
+                  width: 7.0
+              ),
+            ),
+          )
+              : Container(),
+        ),
+      ),
+    );
   }
 }

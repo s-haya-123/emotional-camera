@@ -1,0 +1,159 @@
+import 'package:scoped_model/scoped_model.dart';
+import 'dart:io';
+
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+import 'AzureClient.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
+
+enum DisplayPosition {
+  TOP_RIGHT,TOP_LEFT,BOTTOM_RIGHT,BOTTOM_LEFT
+}
+class CameraModel extends Model {
+  int _coefficient = 0;
+  CameraController _controller;
+  File _pictureFile;
+  double rectangleWidgetLeft = 0;
+  double rectangleWidgetTop = 0;
+  double rectangleWidgetHeight = 100;
+  double rectangleWidgetWidth = 100;
+
+  double coefficientWidgetLeft = 0;
+  double coefficientWidgetTop = 0;
+  double coefficientValue = 0;
+  final double coefficientWidgetHeight = 100;
+  final double coefficientWidgetWidth = 100;
+  Size _displaySize;
+  bool _isShowResultWidget = false;
+  CameraDescription _cameras;
+
+  CameraModel(this._cameras);
+
+
+  int get coefficient => _coefficient;
+  bool get isShowResultWidget => _isShowResultWidget;
+  Size get displaySize => _displaySize;
+  CameraController get controller => _controller;
+  File get pictureFile => _pictureFile;
+  void set displaySize (Size size) => _displaySize = size;
+
+  void startCameraPreview() async {
+    if (_controller != null) {
+      await _controller.dispose();
+    }
+    _controller = new CameraController(_cameras, ResolutionPreset.high);
+    _controller.addListener(() {
+      notifyListeners();
+    });
+
+    try {
+      await _controller.initialize();
+    } on CameraException catch (e) {
+
+    }
+    notifyListeners();
+  }
+  // カメラアイコンが押された時に呼ばれるコールバック関数
+  void onTakePictureButtonPressed() async {
+    String filePath = await takePicture();
+    _pictureFile = new File(filePath);
+    FaceEntity face = await AzureRepository(_displaySize).detectFaceInfo(pictureFile, true, false, "emotion", "recognition_01", false);
+    setAttributesWidgetParameter(face, pictureFile);
+    notifyListeners();
+  }
+
+  void setAttributesWidgetParameter(FaceEntity face, File pictureFile) async {
+    ImageProperties image = await FlutterNativeImage.getImageProperties(pictureFile.path);
+    if (face != null && face.faceRectangleEntity != null){
+      Size imageSize = getImageSize(_displaySize,image);
+      FaceRectangleEntity faceRectangleEntity = face.faceRectangleEntity
+          .getDisplaySizeFaceRectangle(_displaySize, imageSize);
+      rectangleWidgetTop = faceRectangleEntity.top.toDouble();
+      rectangleWidgetLeft = faceRectangleEntity.left.toDouble();
+      rectangleWidgetHeight = faceRectangleEntity.height.toDouble();
+      rectangleWidgetWidth = faceRectangleEntity.width.toDouble();
+      _isShowResultWidget = true;
+
+      coefficientValue = calcUnhappyCoefficient(face.faceAttributesEntity.emotionEntity);
+
+      switch (getDisplayPosition(_displaySize, rectangleWidgetLeft, rectangleWidgetTop)) {
+        case DisplayPosition.BOTTOM_RIGHT: {
+          coefficientWidgetTop = rectangleWidgetTop - coefficientWidgetHeight;
+          coefficientWidgetLeft = rectangleWidgetLeft - coefficientWidgetWidth;
+          break;
+        }
+        case DisplayPosition.BOTTOM_LEFT: {
+          coefficientWidgetTop = rectangleWidgetTop - coefficientWidgetHeight;
+          coefficientWidgetLeft = rectangleWidgetLeft + rectangleWidgetWidth;
+          break;
+        }
+        case DisplayPosition.TOP_RIGHT: {
+          coefficientWidgetTop = rectangleWidgetTop + rectangleWidgetHeight;
+          coefficientWidgetLeft = rectangleWidgetLeft - coefficientWidgetWidth;
+          break;
+        }
+        case DisplayPosition.TOP_LEFT: {
+          coefficientWidgetTop = rectangleWidgetTop + rectangleWidgetHeight;
+          coefficientWidgetLeft = rectangleWidgetLeft + rectangleWidgetWidth;
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
+  }
+  Size getImageSize(Size displaySize, ImageProperties image){
+    if (
+    (displaySize.width > displaySize.height && image.width > image.height)
+        || (displaySize.width < displaySize.height && image.width < image.height)
+    ) {
+      return Size(image.width.toDouble(),image.height.toDouble());
+    } else {
+      return Size(image.height.toDouble(),image.width.toDouble());
+    }
+  }
+
+  double calcUnhappyCoefficient(EmotionEntity emotionEntity){
+    return emotionEntity.anger * 300 + emotionEntity.disgust * 100 + emotionEntity.sadness * 300 + emotionEntity.contempt * 100;
+  }
+  DisplayPosition getDisplayPosition(Size displaySize, double faceLeft, double faceTop){
+    if(faceLeft < displaySize.width /2 && faceTop < displaySize.height / 2){
+      return DisplayPosition.TOP_LEFT;
+    } else if(faceLeft >= displaySize.width /2 && faceTop < displaySize.height / 2) {
+      return DisplayPosition.TOP_RIGHT;
+    }
+    else if(faceLeft < displaySize.width /2 && faceTop >= displaySize.height / 2) {
+      return DisplayPosition.BOTTOM_LEFT;
+    } else {
+      return DisplayPosition.BOTTOM_RIGHT;
+    }
+  }
+  String timestamp() => new DateTime.now().millisecondsSinceEpoch.toString();
+  Future<String> takePicture() async {
+    if (!_controller.value.isInitialized) {
+      return null;
+    }
+
+    final Directory extDir = await getApplicationDocumentsDirectory();
+    final String dirPath = '${extDir.path}/Pictures/flutter_test';
+    await new Directory(dirPath).create(recursive: true);
+    final String filePath = '$dirPath/${timestamp()}.jpg';
+
+    if (_controller.value.isTakingPicture) {
+      return null;
+    }
+
+    try {
+      await _controller.takePicture(filePath);
+    } on CameraException catch (e) {
+      return null;
+    }
+    return filePath;
+  }
+  void resetTakedPicture(){
+    _pictureFile = null;
+    _isShowResultWidget = false;
+  }
+}
