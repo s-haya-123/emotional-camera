@@ -6,14 +6,15 @@ import 'package:flutter/material.dart';
 import 'AzureClient.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
+import 'package:analyze_emotion/TtsModel.dart';
 
 enum DisplayPosition {
   TOP_RIGHT,TOP_LEFT,BOTTOM_RIGHT,BOTTOM_LEFT
 }
 class CameraModel extends Model {
-  int _coefficient = 0;
-  CameraController _controller;
-  File _pictureFile;
+  int coefficient = 0;
+  CameraController controller;
+  File pictureFile;
   double rectangleWidgetLeft = 0;
   double rectangleWidgetTop = 0;
   double rectangleWidgetHeight = 100;
@@ -24,31 +25,27 @@ class CameraModel extends Model {
   double coefficientValue = 0;
   final double coefficientWidgetHeight = 100;
   final double coefficientWidgetWidth = 100;
-  Size _displaySize;
-  bool _isShowResultWidget = false;
-  CameraDescription _cameras;
+  Size displaySize;
+  bool isShowResultWidget = false;
+  CameraDescription cameras;
+  TtsModel ttsModel;
 
-  CameraModel(this._cameras);
-
-
-  int get coefficient => _coefficient;
-  bool get isShowResultWidget => _isShowResultWidget;
-  Size get displaySize => _displaySize;
-  CameraController get controller => _controller;
-  File get pictureFile => _pictureFile;
-  void set displaySize (Size size) => _displaySize = size;
+  CameraModel(this.cameras){
+    ttsModel = TtsModel();
+  }
 
   void startCameraPreview() async {
-    if (_controller != null) {
-      await _controller.dispose();
+    if (controller != null) {
+      await controller.dispose();
     }
-    _controller = new CameraController(_cameras, ResolutionPreset.high);
-    _controller.addListener(() {
+    ttsModel.speak("こんにちわ");
+    controller = new CameraController(cameras, ResolutionPreset.high);
+    controller.addListener(() {
       notifyListeners();
     });
 
     try {
-      await _controller.initialize();
+      await controller.initialize();
     } on CameraException catch (e) {
 
     }
@@ -57,8 +54,8 @@ class CameraModel extends Model {
   // カメラアイコンが押された時に呼ばれるコールバック関数
   void onTakePictureButtonPressed() async {
     String filePath = await takePicture();
-    _pictureFile = new File(filePath);
-    FaceEntity face = await AzureRepository(_displaySize).detectFaceInfo(pictureFile, true, false, "emotion", "recognition_01", false);
+    pictureFile = new File(filePath);
+    FaceEntity face = await AzureRepository(displaySize).detectFaceInfo(pictureFile, true, false, "emotion", "recognition_01", false);
     setAttributesWidgetParameter(face, pictureFile);
     notifyListeners();
   }
@@ -66,18 +63,18 @@ class CameraModel extends Model {
   void setAttributesWidgetParameter(FaceEntity face, File pictureFile) async {
     ImageProperties image = await FlutterNativeImage.getImageProperties(pictureFile.path);
     if (face != null && face.faceRectangleEntity != null){
-      Size imageSize = getImageSize(_displaySize,image);
+      Size imageSize = getImageSize(displaySize,image);
       FaceRectangleEntity faceRectangleEntity = face.faceRectangleEntity
-          .getDisplaySizeFaceRectangle(_displaySize, imageSize);
+          .getDisplaySizeFaceRectangle(displaySize, imageSize);
       rectangleWidgetTop = faceRectangleEntity.top.toDouble();
       rectangleWidgetLeft = faceRectangleEntity.left.toDouble();
       rectangleWidgetHeight = faceRectangleEntity.height.toDouble();
       rectangleWidgetWidth = faceRectangleEntity.width.toDouble();
-      _isShowResultWidget = true;
+      isShowResultWidget = true;
 
       coefficientValue = calcUnhappyCoefficient(face.faceAttributesEntity.emotionEntity);
 
-      switch (getDisplayPosition(_displaySize, rectangleWidgetLeft, rectangleWidgetTop)) {
+      switch (getDisplayPosition(displaySize, rectangleWidgetLeft, rectangleWidgetTop)) {
         case DisplayPosition.BOTTOM_RIGHT: {
           coefficientWidgetTop = rectangleWidgetTop - coefficientWidgetHeight;
           coefficientWidgetLeft = rectangleWidgetLeft - coefficientWidgetWidth;
@@ -132,7 +129,7 @@ class CameraModel extends Model {
   }
   String timestamp() => new DateTime.now().millisecondsSinceEpoch.toString();
   Future<String> takePicture() async {
-    if (!_controller.value.isInitialized) {
+    if (!controller.value.isInitialized) {
       return null;
     }
 
@@ -141,19 +138,19 @@ class CameraModel extends Model {
     await new Directory(dirPath).create(recursive: true);
     final String filePath = '$dirPath/${timestamp()}.jpg';
 
-    if (_controller.value.isTakingPicture) {
+    if (controller.value.isTakingPicture) {
       return null;
     }
 
     try {
-      await _controller.takePicture(filePath);
+      await controller.takePicture(filePath);
     } on CameraException catch (e) {
       return null;
     }
     return filePath;
   }
   void resetTakedPicture(){
-    _pictureFile = null;
-    _isShowResultWidget = false;
+    pictureFile = null;
+    isShowResultWidget = false;
   }
 }
