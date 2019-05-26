@@ -12,14 +12,14 @@ class TtsModel {
   dynamic voices;
   final String language = "ja-JP";
   String voice = "ja-jp-x-htm#male_2-local";
-
-
   TtsState ttsState = TtsState.stopped;
 
   get isPlaying => ttsState == TtsState.playing;
   get isStopped => ttsState == TtsState.stopped;
+
   TtsModel() {
     flutterTts = FlutterTts();
+    flutterTts.setPitch(0.8);
     flutterTts.setStartHandler(() {
       ttsState = TtsState.playing;
     });

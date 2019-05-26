@@ -62,8 +62,8 @@ class CameraModel extends Model {
   }
   void setCoefficient(FaceEntity face) async {
     var value = calcUnhappyCoefficient(face.faceAttributesEntity.emotionEntity);
-    await ttsModel.speak("おこり係数" + value.toString());
-    await ttsModel.speak(_getCoefficientString(value));
+    String speach = "おこり係数" + value.toString() + "......" + _getCoefficientString(value);
+    ttsModel.speak(speach);
     coefficientValue = value;
     targetState = value > 100 ? "EXECUTION":"NOT TARGET";
   }
