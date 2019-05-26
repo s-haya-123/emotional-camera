@@ -29,6 +29,7 @@ class CameraModel extends Model {
   bool isShowResultWidget = false;
   CameraDescription cameras;
   TtsModel ttsModel;
+  String targetState;
 
   CameraModel(this.cameras){
     ttsModel = TtsModel();
@@ -38,7 +39,6 @@ class CameraModel extends Model {
     if (controller != null) {
       await controller.dispose();
     }
-    ttsModel.speak("こんにちわ");
     controller = new CameraController(cameras, ResolutionPreset.high);
     controller.addListener(() {
       notifyListeners();
@@ -51,13 +51,30 @@ class CameraModel extends Model {
     }
     notifyListeners();
   }
-  // カメラアイコンが押された時に呼ばれるコールバック関数
+
   void onTakePictureButtonPressed() async {
     String filePath = await takePicture();
     pictureFile = new File(filePath);
     FaceEntity face = await AzureRepository(displaySize).detectFaceInfo(pictureFile, true, false, "emotion", "recognition_01", false);
     setAttributesWidgetParameter(face, pictureFile);
+    setCoefficient(face);
     notifyListeners();
+  }
+  void setCoefficient(FaceEntity face) async {
+    var value = calcUnhappyCoefficient(face.faceAttributesEntity.emotionEntity);
+    await ttsModel.speak("おこり係数" + value.toString());
+    await ttsModel.speak(_getCoefficientString(value));
+    coefficientValue = value;
+    targetState = value > 100 ? "EXECUTION":"NOT TARGET";
+  }
+  String _getCoefficientString(double coefficientValue){
+    if (coefficientValue <100) {
+      return "執行対象ではありません。";
+    } else if(coefficientValue < 300) {
+      return "執行対象です。" ;
+    } else {
+      return "執行モード、リーサル・エリミネーター";
+    }
   }
 
   void setAttributesWidgetParameter(FaceEntity face, File pictureFile) async {
@@ -72,7 +89,6 @@ class CameraModel extends Model {
       rectangleWidgetWidth = faceRectangleEntity.width.toDouble();
       isShowResultWidget = true;
 
-      coefficientValue = calcUnhappyCoefficient(face.faceAttributesEntity.emotionEntity);
 
       switch (getDisplayPosition(displaySize, rectangleWidgetLeft, rectangleWidgetTop)) {
         case DisplayPosition.BOTTOM_RIGHT: {
@@ -152,5 +168,6 @@ class CameraModel extends Model {
   void resetTakedPicture(){
     pictureFile = null;
     isShowResultWidget = false;
+    notifyListeners();
   }
 }

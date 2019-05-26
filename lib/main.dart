@@ -126,7 +126,7 @@ class _MyHomePageState extends StatelessWidget {
             left: model.coefficientWidgetLeft + model.coefficientWidgetWidth /2,
             top: model.coefficientWidgetTop + model.coefficientWidgetHeight / 3 + 47,
             child: Text(
-              model.coefficientValue > 100 ? "EXECUTION":"NOT TARGET",
+              model.targetState,
               style: TextStyle(
                 fontSize: 15,
                 color: Color.fromRGBO(255, 255, 255, 1),
@@ -176,16 +176,16 @@ class _MyHomePageState extends StatelessWidget {
       builder: (context, child, model) {
         return model.pictureFile == null
             ? new AspectRatio(
-          aspectRatio: model.controller.value.aspectRatio,
-          child: new CameraPreview(model.controller),
-        )
+              aspectRatio: model.controller.value.aspectRatio,
+              child: new CameraPreview(model.controller),
+            )
             : Image.file(
-          model.pictureFile,
-          fit: BoxFit.cover,
-          height: double.infinity,
-          width: double.infinity,
-          alignment: Alignment.center,
-        );
+              model.pictureFile,
+              fit: BoxFit.cover,
+              height: double.infinity,
+              width: double.infinity,
+              alignment: Alignment.center,
+            );
       },
     );
   }
