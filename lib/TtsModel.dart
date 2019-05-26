@@ -10,8 +10,8 @@ class TtsModel {
   FlutterTts flutterTts;
   dynamic languages;
   dynamic voices;
-  String language;
-  String voice;
+  final String language = "ja-JP";
+  String voice = "ja-jp-x-htm#male_2-local";
 
 
   TtsState ttsState = TtsState.stopped;
@@ -20,16 +20,6 @@ class TtsModel {
   get isStopped => ttsState == TtsState.stopped;
   TtsModel() {
     flutterTts = FlutterTts();
-
-    if (Platform.isAndroid) {
-      flutterTts.ttsInitHandler(() {
-        language = "ja-JP";
-        voice = "ja-jp-x-htm#male_2-local";
-      });
-    } else if (Platform.isIOS) {
-      language = "ja-JP";
-    }
-
     flutterTts.setStartHandler(() {
       ttsState = TtsState.playing;
     });
@@ -41,15 +31,6 @@ class TtsModel {
     flutterTts.setErrorHandler((msg) {
         ttsState = TtsState.stopped;
     });
-  }
-  Future _getLanguages() async {
-    languages = await flutterTts.getLanguages;
-    print(languages);
-  }
-
-  Future _getVoices() async {
-    voices = await flutterTts.getVoices;
-    print(voices);
   }
 
   Future speak(String text) async {
